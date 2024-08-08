@@ -16,11 +16,12 @@ const request = require('request');
 
 const HttpsProxyAgent = require('https-proxy-agent');
 
-var agent = null;
+var bot;
 if (config.proxy !== null) {
-    agent = new HttpsProxyAgent.HttpsProxyAgent(config.proxy);
+    bot = new Telegraf(config.token, { telegram: { agent: new HttpsProxyAgent.HttpsProxyAgent(config.proxy) } });
+} else {
+    bot = new Telegraf(config.token);
 }
-const bot = new Telegraf(config.token, { telegram: { agent: agent } });
 
 bot.use(commandParts());
 im.convert.path = config.im_convert_path;
