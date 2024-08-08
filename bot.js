@@ -20,7 +20,7 @@ var agent = null;
 if (config.proxy !== null) {
     agent = new HttpsProxyAgent.HttpsProxyAgent(config.proxy);
 }
-const bot = new Telegraf(config.token, { username: config.username, telegram: { agent: agent } });
+const bot = new Telegraf(config.token, { telegram: { agent: agent } });
 
 bot.use(commandParts());
 im.convert.path = config.im_convert_path;
@@ -444,21 +444,20 @@ function download(ctx, url, dest, callback) {
 function convert(ctx, src, fpath, opts, callback) {
     let chatId = ctx.message.chat.id;
     let imarg = [src];
-    let width = opts['width'];
-    let format = opts['format'];
-    let destimg = path.resolve(fpath.imgpath + '/' + path.basename(src, 'webp') + 'jpg');
-    if (width && width < 512) {
-        imarg.push('-resize', width + 'x' + width);
+    let destimg = path.resolve(fpath.imgpath + '/' + path.basename(src, path.extname(src)) + '.webp');
+
+    if (path.extname(src) === '.webm') {
+        imarg.push('-loop', '0'); // Loop animation
+        imarg.push('-layers', 'optimize'); // Prevent generating glitchy GIFs
+        destimg = path.resolve(fpath.imgpath + '/' + path.basename(src, path.extname(src)) + '.gif');
     }
-    if (format === 'png') {
-        destimg = path.resolve(fpath.imgpath + '/' + path.basename(src, 'webp') + 'png');
-        imarg.push(destimg);
-    } else {
-        // use -flatten to add white background to jpg files
-        imarg.push('-flatten', destimg)
-    }
+
+    // 设置输出为 WebP 格式
+    imarg.push(destimg);
+
     logger(chatId, 'info', 'Convert: ' + im.convert.path + ' ' + imarg.join(' '));
     im.convert(imarg, function (err) {
+        if (err !== null) logger(chatId, 'warning', 'Error in conversion: ' + err.toString());
         callback(err, destimg);
     });
 }
