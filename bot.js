@@ -14,7 +14,13 @@ const JSZip = require("jszip");
 const async = require('async');
 const request = require('request');
 
-const bot = new Telegraf(config.token, { username: config.username });
+const HttpsProxyAgent = require('https-proxy-agent');
+
+var agent = null;
+if (config.proxy !== null) {
+    agent = new HttpsProxyAgent.HttpsProxyAgent(config.proxy);
+}
+const bot = new Telegraf(config.token, { username: config.username, telegram: { agent: agent } });
 
 bot.use(commandParts());
 im.convert.path = config.im_convert_path;
