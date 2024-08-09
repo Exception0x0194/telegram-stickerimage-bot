@@ -10,6 +10,7 @@ const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const commandParts = require('telegraf-command-parts');
 const im = require('imagemagick');
+const tgs = require('tgs-to');
 const JSZip = require("jszip");
 const async = require('async');
 const request = require('request');
@@ -451,6 +452,23 @@ function convert(ctx, src, fpath, opts, callback) {
         imarg.push('-loop', '0'); // Loop animation
         imarg.push('-layers', 'optimize'); // Prevent generating glitchy GIFs
         destimg = path.resolve(fpath.imgpath + '/' + path.basename(src, path.extname(src)) + '.gif');
+    }
+
+    if (path.extname(src) === '.tgs') {
+        const tgsFile = new tgs(src);
+        let dst = path.resolve(fpath.imgpath + '/' + path.basename(src, path.extname(src)) + '.gif');
+        logger(chatId, 'info', 'Convert TGS: ' + src + ' -> ' + dst);
+        Promise.all([
+            tgsFile.convertToGif(dst),
+        ])
+            .then(() => {
+                callback(null, dst);
+            })
+            .catch(err => {
+                logger(chatId, 'warning', 'Error in TGS conversion: ' + err.toString());
+                callback(err, dst);
+            })
+        return;
     }
 
     // 设置输出为 WebP 格式
