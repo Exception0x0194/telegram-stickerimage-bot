@@ -3,6 +3,8 @@ module.exports = {
     token: '1234567890:YOURTOKENHERE',
     username: 'MyAwesomeStickerBot',
 
+    proxy: null,
+
     // imagemagick convert path, defaults to 'convert'
     im_convert_path: 'convert',
 
